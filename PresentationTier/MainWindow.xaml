@@ -102,41 +102,55 @@
                         <ColumnDefinition/>
 
                     </Grid.ColumnDefinitions>
-                    <Button Background="#ebfcff" Name="BtnAdd" Click="BtnAdd_Click" Content="Добавить" Width="80" Height="30" Margin="0" Grid.Row="2" Grid.Column="0"  />
+                    <Button Background="PaleGreen" Name="BtnAdd" Click="BtnAdd_Click" Content="Добавить" Width="80" Height="30" Margin="0" Grid.Row="2" Grid.Column="0"  />
 
                     <Button Background="#ebfcff" Name="BtnCreateFile" Click="BtnCreateFile_Click" Content="Записать" Width="80" Height="30" Margin="0" Grid.Column="1"/>
 
 
-                    <Button Background="#ebfcff" Name="BtnDelete" Click="BtnDelete_Click" Content="Удалить" Width="80" Height="30" Margin="0" Grid.Column="2"/>
+                    <Button Background="PaleVioletRed" Name="BtnDelete" Click="BtnDelete_Click" Content="Удалить" Width="80" Height="30" Margin="0" Grid.Column="2"/>
                 </Grid>
 
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="5" Orientation="Vertical" HorizontalAlignment="Center">
 
-                    <TextBox  Name="TxtCode" Background="#f1f1e6" BorderBrush="White" BorderThickness="1" Width="380" Height="20" Margin="0,2" />
-                    <TextBox Name="TxtName" Background="#f1f1e6" BorderBrush="White" BorderThickness="1" Width="380" Height="20" Margin="0,2" />
-                    <TextBox Name="TxtGenre" Background="#f1f1e6" BorderBrush="White" BorderThickness="1" Width="380" Height="20" Margin="0,2" />
-                    <TextBox Name="TxtPrice" Background="#f1f1e6" BorderBrush="White" BorderThickness="1" Width="380" Height="20" Margin="0,2" />
-                    <TextBox Name="TxtQuantity" Background="#f1f1e6" BorderBrush="White" BorderThickness="1" Width="380" Height="20" Margin="0,2"/>
+                    <TextBox  Name="TxtCode" Background="#f1f1e6" BorderBrush="White" BorderThickness="1" Width="380" Height="20" Margin="0,0" />
+                    <TextBox Name="TxtName" Background="#f1f1e6" BorderBrush="White" BorderThickness="1" Width="380" Height="20" Margin="0,3" />
+                   
+                    <ComboBox x:Name="GenreComboBox" SelectedIndex="0" Margin="0,0.2,0,0">
+                        <ComboBoxItem IsEnabled="False" Content="Выберите жанр" />
+                        <ComboBoxItem Content="Фэнтези"/>
+                        <ComboBoxItem Content="Детектив"/>
+                        <ComboBoxItem Content="Научная фантастика"/>
+                        <ComboBoxItem Content="Драма"/>
+                        <ComboBoxItem Content="Триллер"/>
+                    </ComboBox>
+                    <TextBox Name="TxtPrice" Background="#f1f1e6" BorderBrush="White" BorderThickness="1" Width="380" Height="20" Margin="0,3,0,0" />
+                    <TextBox Name="TxtQuantity" Background="#f1f1e6" BorderBrush="White" BorderThickness="1" Width="380" Height="20" Margin="0,3"/>
                 </StackPanel>
             </Grid>
 
             <ListBox Name="MainList" ItemsSource="{Binding СписокТоваров, Mode=OneWay}"
                  DisplayMemberPath="ПредставлениеТовара" Background="Azure"
                  Margin="10"/>
-            <Grid Grid.Column="1" Height="120" VerticalAlignment="Top" Margin="0,5,0,0" >
+            <Grid Grid.Column="1" Height="120" VerticalAlignment="Top" Margin="0,3,0,0" >
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition />
+                    
 
                 </Grid.RowDefinitions>
-                <TextBlock Foreground="#f0e6e0" Margin="5" Grid.Row="0" Text="Код:" Grid.Column="1" HorizontalAlignment="Right"/>
-                <TextBlock Foreground="#f0e6e0" Margin="5" Grid.Row="1" Text="Наименование:" Grid.Column="1" HorizontalAlignment="Right"/>
-                <TextBlock Foreground="#f0e6e0" Margin="5" Grid.Row="2" Text="Жанр:" Grid.Column="1" HorizontalAlignment="Right"/>
-                <TextBlock Foreground="#f0e6e0" Margin="5" Grid.Row="3" Text="Цена:" Grid.Column="1" HorizontalAlignment="Right"/>
-                <TextBlock Foreground="#f0e6e0" Margin="5" Grid.Row="4" Text="Количество:" Grid.Column="1" HorizontalAlignment="Right"/>
+                <TextBlock Foreground="#f0e6e0" Margin="1" Grid.Row="0" Text="Код:" Grid.Column="1" HorizontalAlignment="Right"/>
+                <TextBlock Foreground="#f0e6e0" Margin="1" Grid.Row="1" Text="Наименование:" Grid.Column="1" HorizontalAlignment="Right"/>
+                <TextBlock Foreground="#f0e6e0" Margin="1" Grid.Row="2" Text="Жанр:" Grid.Column="1" HorizontalAlignment="Right"/>
+                <TextBlock Foreground="#f0e6e0" Margin="1" Grid.Row="3" Text="Цена:" Grid.Column="1" HorizontalAlignment="Right"/>
+                <TextBlock Foreground="#f0e6e0" Margin="1" Grid.Row="4" Text="Количество:" Grid.Column="1" HorizontalAlignment="Right"/>
+                
+            </Grid>
+            <Grid Grid.Column="1" Height="135" VerticalAlignment="Bottom">
+                <Button Background="DodgerBlue" Foreground="White" Margin="6.8"  Content="Сохранить" Click="BtnSave_Click" Width="80" Height="30" VerticalAlignment="Bottom"/>
+                
             </Grid>
 
         </Grid>

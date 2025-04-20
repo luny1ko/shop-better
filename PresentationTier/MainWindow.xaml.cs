@@ -21,6 +21,8 @@ namespace PresentationTier;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private string currentFilePath = null;
+
     private ObservableCollection<string> items = new ObservableCollection<string>();
     public MainWindow()
     {
@@ -38,8 +40,10 @@ public partial class MainWindow : Window
         {
             if (openFileDialog.ShowDialog() == true)
             {
+                currentFilePath = openFileDialog.FileName;  // Сохраняем путь к файлу
+
                 var магазин = (LogicTier.Магазин)DataContext;
-                var lines = File.ReadAllLines(openFileDialog.FileName);
+                var lines = File.ReadAllLines(currentFilePath);
 
                 foreach (var line in lines)
                 {
@@ -60,11 +64,13 @@ public partial class MainWindow : Window
                         Цена = float.Parse(parts[3]),
                         Количество = int.Parse(parts[4]),
                         Код = parts[0],
-                        
+
                     };
 
                     магазин.СписокТоваров.Add(new LogicTier.ТоварнаяПозиция(товар));
                 }
+
+                MessageBox.Show($"Файл успешно импортирован: {currentFilePath}");
             }
         }
         catch (Exception ex)
@@ -100,34 +106,65 @@ public partial class MainWindow : Window
 
     private void BtnAdd_Click(object sender, RoutedEventArgs e)
     {
-        try
+        // Получаем значения
+        string код = TxtCode.Text.Trim();
+        string название = TxtName.Text.Trim();
+        string ценаStr = TxtPrice.Text.Trim();
+        string колвоStr = TxtQuantity.Text.Trim();
+
+        // Проверка жанра
+        var selectedItem = (ComboBoxItem)GenreComboBox.SelectedItem;
+        if (selectedItem == null || !selectedItem.IsEnabled)
         {
-            var товар = new DataTier.Товар
-            {
-                Код = TxtCode.Text,
-                Наименование = TxtName.Text,
-                Жанр = TxtGenre.Text,
-                Цена = float.Parse(TxtPrice.Text),
-                ПроцентСкидки = float.Parse(TxtQuantity.Text),
-                Количество = 1
-            };
-
-            var позиция = new LogicTier.ТоварнаяПозиция(товар); // оборачиваем
-
-            var магазин = (LogicTier.Магазин)DataContext;
-            магазин.СписокТоваров.Add(позиция); // добавляем в список
-
-            TxtCode.Clear();
-            TxtName.Clear();
-            TxtGenre.Clear();
-            TxtPrice.Clear();
-            TxtQuantity.Clear();
-
+            MessageBox.Show("Пожалуйста, выберите жанр.");
+            return;
         }
-        catch (Exception ex)
+        string жанр = selectedItem.Content.ToString();
+
+        // Проверка пустых полей
+        if (string.IsNullOrWhiteSpace(код) ||
+            string.IsNullOrWhiteSpace(название) ||
+            string.IsNullOrWhiteSpace(ценаStr) ||
+            string.IsNullOrWhiteSpace(колвоStr))
         {
-            MessageBox.Show("Ошибка при добавлении товара: " + ex.Message, "Ошибка");
+            MessageBox.Show("Пожалуйста, заполните все поля.");
+            return;
         }
+
+        // Проверка корректности цены
+        if (!float.TryParse(ценаStr, out float цена) || цена < 0)
+        {
+            MessageBox.Show("Цена должна быть положительным числом.");
+            return;
+        }
+
+        // Проверка корректности количества
+        if (!int.TryParse(колвоStr, out int количество) || количество < 0)
+        {
+            MessageBox.Show("Количество должно быть положительным целым числом.");
+            return;
+        }
+
+        // Создание товара
+        var товар = new DataTier.Товар()
+        {
+            Код = код,
+            Наименование = название,
+            Жанр = жанр,
+            Цена = цена,
+            Количество = количество
+        };
+
+        // Добавление в список
+        var магазин = (LogicTier.Магазин)DataContext;
+        магазин.СписокТоваров.Add(new LogicTier.ТоварнаяПозиция(товар));
+
+        // Очистка
+        TxtCode.Clear();
+        TxtName.Clear();
+        GenreComboBox.SelectedIndex = 0;
+        TxtPrice.Clear();
+        TxtQuantity.Clear();
     }
 
     private void BtnCreateFile_Click(object sender, RoutedEventArgs e)
@@ -175,6 +212,35 @@ public partial class MainWindow : Window
         foreach (var item in itemsToRemove)
         {
             магазин.СписокТоваров.Remove(item); //удаляем из коллекции ObservableCollection
+        }
+    }
+
+    private void BtnSave_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(currentFilePath))
+        {
+            MessageBox.Show("Файл не выбран. Сначала используйте 'Импорт' для выбора файла.");
+            return;
+        }
+
+        try
+        {
+            var магазин = (LogicTier.Магазин)DataContext;
+
+            using (StreamWriter sw = new StreamWriter(currentFilePath))
+            {
+                foreach (var товарнаяПозиция in магазин.СписокТоваров)
+                {
+                    var товар = товарнаяПозиция.Товар;
+                    sw.WriteLine($"{товар.Код} | {товар.Наименование} | {товар.Жанр} | {товар.Цена} | {товар.Количество}");
+                }
+            }
+
+            MessageBox.Show($"Файл успешно сохранён: {currentFilePath}");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка при сохранении файла:\n{ex.Message}");
         }
     }
 }
