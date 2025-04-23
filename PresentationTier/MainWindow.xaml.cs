@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -13,6 +14,7 @@ using System.Windows.Shapes;
 using DataTier;
 using LogicTier;
 using Microsoft.Win32;
+using System.Text.Json;
 
 namespace PresentationTier;
 
@@ -227,12 +229,29 @@ public partial class MainWindow : Window
         {
             var магазин = (LogicTier.Магазин)DataContext;
 
-            using (StreamWriter sw = new StreamWriter(currentFilePath))
+            // Сохраняем в зависимости от расширения файла
+            string extension = System.IO.Path.GetExtension(currentFilePath).ToLower();
+
+            if (extension == ".json")
             {
-                foreach (var товарнаяПозиция in магазин.СписокТоваров)
+                var товары = магазин.СписокТоваров.Select(tp => tp.Товар).ToList();
+
+                string json = JsonSerializer.Serialize(товары, new JsonSerializerOptions
                 {
-                    var товар = товарнаяПозиция.Товар;
-                    sw.WriteLine($"{товар.Код} | {товар.Наименование} | {товар.Жанр} | {товар.Цена} | {товар.Количество}");
+                    WriteIndented = true
+                });
+
+                File.WriteAllText(currentFilePath, json);
+            }
+            else
+            {
+                using (StreamWriter sw = new StreamWriter(currentFilePath))
+                {
+                    foreach (var товарнаяПозиция in магазин.СписокТоваров)
+                    {
+                        var товар = товарнаяПозиция.Товар;
+                        sw.WriteLine($"{товар.Код} | {товар.Наименование} | {товар.Жанр} | {товар.Цена} | {товар.Количество}");
+                    }
                 }
             }
 
@@ -241,6 +260,21 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             MessageBox.Show($"Ошибка при сохранении файла:\n{ex.Message}");
+        }
+    }
+
+    private void SaveToJson_Click(object sender, RoutedEventArgs e)
+    {
+        var магазин = (LogicTier.Магазин)DataContext;
+        var список = магазин.СписокТоваров.Select(p => p.Товар).ToList();
+
+        SaveFileDialog saveDialog = new SaveFileDialog();
+        saveDialog.Filter = "JSON файлы (*.json)|*.json";
+        if (saveDialog.ShowDialog() == true)
+        {
+            string json = JsonSerializer.Serialize(список, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(saveDialog.FileName, json);
+            MessageBox.Show("Файл сохранён в формате JSON!");
         }
     }
 }

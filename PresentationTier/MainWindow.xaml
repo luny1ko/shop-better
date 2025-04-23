@@ -150,7 +150,7 @@
             </Grid>
             <Grid Grid.Column="1" Height="135" VerticalAlignment="Bottom">
                 <Button Background="DodgerBlue" Foreground="White" Margin="6.8"  Content="Сохранить" Click="BtnSave_Click" Width="80" Height="30" VerticalAlignment="Bottom"/>
-                
+                <Button Background="SlateGray" Foreground="White" Margin="6.8"  Content="Сохранить в json" Click="SaveToJson_Click" Width="120" Height="30" VerticalAlignment="Center"/>
             </Grid>
 
         </Grid>
