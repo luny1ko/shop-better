@@ -36,40 +36,57 @@ public partial class MainWindow : Window
     private void ImportButton_Click(object sender, RoutedEventArgs e)
     {
         OpenFileDialog openFileDialog = new OpenFileDialog();
-        openFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+        openFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|JSON файлы (*.json)|*.json|Все файлы (*.*)|*.*";
 
         try
         {
             if (openFileDialog.ShowDialog() == true)
             {
                 currentFilePath = openFileDialog.FileName;  // Сохраняем путь к файлу
-
                 var магазин = (LogicTier.Магазин)DataContext;
-                var lines = File.ReadAllLines(currentFilePath);
+                магазин.СписокТоваров.Clear();  // очищаем старое
 
-                foreach (var line in lines)
+                string extension = System.IO.Path.GetExtension(currentFilePath).ToLower();
+
+                if (extension == ".json")
                 {
-                    var parts = line.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(p => p.Trim())
-                                    .ToArray();
+                    // Импорт из JSON
+                    string json = File.ReadAllText(currentFilePath);
+                    var товары = JsonSerializer.Deserialize<List<DataTier.Товар>>(json);
 
-                    if (parts.Length != 5)
+                    foreach (var товар in товары)
                     {
-                        MessageBox.Show($"Ошибка в строке: {line}\nНеверный формат данных.");
-                        continue;
+                        магазин.СписокТоваров.Add(new LogicTier.ТоварнаяПозиция(товар));
                     }
+                }
+                else
+                {
+                    // Импорт из обычного текстового файла
+                    var lines = File.ReadAllLines(currentFilePath);
 
-                    var товар = new DataTier.Товар()
+                    foreach (var line in lines)
                     {
-                        Наименование = parts[1],
-                        Жанр = parts[2],
-                        Цена = float.Parse(parts[3]),
-                        Количество = int.Parse(parts[4]),
-                        Код = parts[0],
+                        var parts = line.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(p => p.Trim())
+                                        .ToArray();
 
-                    };
+                        if (parts.Length != 5)
+                        {
+                            MessageBox.Show($"Ошибка в строке: {line}\nНеверный формат данных.");
+                            continue;
+                        }
 
-                    магазин.СписокТоваров.Add(new LogicTier.ТоварнаяПозиция(товар));
+                        var товар = new DataTier.Товар()
+                        {
+                            Наименование = parts[1],
+                            Жанр = parts[2],
+                            Цена = float.Parse(parts[3]),
+                            Количество = int.Parse(parts[4]),
+                            Код = parts[0],
+                        };
+
+                        магазин.СписокТоваров.Add(new LogicTier.ТоварнаяПозиция(товар));
+                    }
                 }
 
                 MessageBox.Show($"Файл успешно импортирован: {currentFilePath}");
@@ -229,29 +246,12 @@ public partial class MainWindow : Window
         {
             var магазин = (LogicTier.Магазин)DataContext;
 
-            // Сохраняем в зависимости от расширения файла
-            string extension = System.IO.Path.GetExtension(currentFilePath).ToLower();
-
-            if (extension == ".json")
+            using (StreamWriter sw = new StreamWriter(currentFilePath))
             {
-                var товары = магазин.СписокТоваров.Select(tp => tp.Товар).ToList();
-
-                string json = JsonSerializer.Serialize(товары, new JsonSerializerOptions
+                foreach (var товарнаяПозиция in магазин.СписокТоваров)
                 {
-                    WriteIndented = true
-                });
-
-                File.WriteAllText(currentFilePath, json);
-            }
-            else
-            {
-                using (StreamWriter sw = new StreamWriter(currentFilePath))
-                {
-                    foreach (var товарнаяПозиция in магазин.СписокТоваров)
-                    {
-                        var товар = товарнаяПозиция.Товар;
-                        sw.WriteLine($"{товар.Код} | {товар.Наименование} | {товар.Жанр} | {товар.Цена} | {товар.Количество}");
-                    }
+                    var товар = товарнаяПозиция.Товар;
+                    sw.WriteLine($"{товар.Код} | {товар.Наименование} | {товар.Жанр} | {товар.Цена} | {товар.Количество}");
                 }
             }
 
@@ -270,10 +270,22 @@ public partial class MainWindow : Window
 
         SaveFileDialog saveDialog = new SaveFileDialog();
         saveDialog.Filter = "JSON файлы (*.json)|*.json";
+
         if (saveDialog.ShowDialog() == true)
         {
-            string json = JsonSerializer.Serialize(список, new JsonSerializerOptions { WriteIndented = true });
+            // Создание настроек сериализации для предотвращения экранирования символов
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
+            // Сериализация списка в JSON с указанными настройками
+            string json = JsonSerializer.Serialize(список, options);
+
+            // Запись в файл
             File.WriteAllText(saveDialog.FileName, json);
+
             MessageBox.Show("Файл сохранён в формате JSON!");
         }
     }

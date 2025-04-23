@@ -9,7 +9,6 @@ namespace DataTier
         public float МинимальнаяЦенаВЖанре { get; set; } 
         public int Количество { get; set; }
         public string Жанр { get; set; }
-        public float ПроцентСкидки { get; set; }
     }
 
 }
